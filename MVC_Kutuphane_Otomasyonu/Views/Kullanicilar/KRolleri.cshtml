@@ -1,0 +1,74 @@
+﻿@model List<MVC_Kutuphane_Otomasyonu.Entities.Model.KullaniciRolleri>
+
+
+
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row">
+    <div class=" col-lg">
+        <div class="ibox">
+            <div class="ibox-head">
+                Kullanıcı Rolleri Listesi
+
+
+            </div>
+            <div class="ibox-body">
+                <table class=" table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Kullanıcı</th>
+                            <td>Rol</td>
+                           
+                            <td>İşlemler</td>
+                        </tr>
+
+
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <th>@Html.DisplayFor(x => item.Id)</th>
+                                <td>@Html.DisplayFor(x => item.KullaniciId)</td>
+                          
+                                <td>@Html.DisplayFor(x => item.Rol.Rol)</td>
+                                <td>
+                                    @Html.ActionLink("Düzenle", "Duzenle","KullaniciRolleri", new { id = item.Id }, new { @class = "btn btn-warning btn-sm" }) |
+                                    @Html.ActionLink("Sil", "Sil", "KullaniciRolleri", new { id = item.Id }, new { @class = "btn btn-danger btn-sm delete", onclick = "return confirm('Kayıt Silinsin Mi ?')" }) 
+
+                                </td>
+
+
+                            </tr>
+
+                        }
+
+
+                    </tbody>
+
+
+                </table>
+                <div class="form-group">
+                    @Html.ActionLink("Yeni", "Ekle","KullaniciRolleri", new { id = ViewBag.KullaniciId }, new { @class = "btn btn-success" })
+
+
+
+                </div>
+
+
+            </div>
+
+
+
+
+        </div>
+
+    </div>
+
+</div>
+

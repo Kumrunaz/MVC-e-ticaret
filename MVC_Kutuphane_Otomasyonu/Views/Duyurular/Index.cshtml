@@ -1,0 +1,315 @@
+﻿@model List<MVC_Kutuphane_Otomasyonu.Entities.Model.Duyurular>
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+
+    td.aciklama-hucre {
+        max-width: 420px; /* ihtiyaç olursa daralt/genişlet */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis; /* ... */
+        vertical-align: middle;
+    }
+</style>
+
+
+<div class="row">
+    <div class="col-lg">
+        <div class=" form-group">
+            <button class="btn btn-danger" type="button" id="silButton">Seçili Sil</button>
+        </div>
+        <div class="ibox">
+            <div class="ibox-head">
+                Duyuru Listesi
+            </div>
+
+            <div class="ibox-body">
+                <table class="table table-bordered table-striped" id="tbl">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAll" /></th> <!-- ✅ Tümünü seç -->
+                            <th>Id</th>
+                            <th>Başlık</th>
+                            <th>Duyuru</th>
+                            <th>Açıklama</th>
+                            <th>Tarih</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                    </tbody>
+                </table>
+
+                <div class="form-group">
+                    @Html.ActionLink("Yeni", "Ekle", null, new { @class = "btn btn-success" })
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ▼▼▼ DÜZENLE MODAL ▼▼▼ -->
+<div class="modal fade" id="dataModal" tabindex="-1" aria-labelledby="dataModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dataModalLabel">Duyuru Güncelleme</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group mb-2">
+                    <label>Başlık</label>
+                    <input id="txtBaslik" class="form-control" />
+                </div>
+                <div class="form-group mb-2">
+                    <label>Duyuru</label>
+                    <input id="txtDuyuru" class="form-control" />
+                </div>
+                <div class="form-group mb-2">
+                    <label>Açıklama</label>
+                    <textarea id="txtAciklama" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="form-group mb-2">
+                    <label>Tarih</label>
+                    <input id="txtTarih" type="datetime-local" class="form-control" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                <button type="button" class="btn btn-primary" id="btnGuncelle">Güncelle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ▼▼▼ DETAY MODAL ▼▼▼ -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="detailModalLabel">Duyuru Detayı</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Başlık:</strong> <span id="detayBaslik"></span></p>
+                <p><strong>Duyuru:</strong> <span id="detayDuyuru"></span></p>
+                <p><strong>Açıklama:</strong></p>
+                <p id="detayAciklama" style="white-space:pre-wrap;"></p>
+                <p><strong>Tarih:</strong> <span id="detayTarih"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="~/AdminDashboard/admincast-master/html/dist/assets/vendors/jquery/dist/jquery.min.js"></script>
+<script src="~/AdminDashboard/admincast-master/html/dist/assets/vendors/moment/min/moment.min.js"></script>
+<script src="~/Scripts/bootstrap.bundle.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            type: 'GET',
+            url: '@Url.Action("DuyuruList", "Duyurular")',
+            success: function (data) {
+                $.each(data, function (index, item) {
+                    var milisecond = parseInt(item.Tarih.substr(6));
+                    var formattedDate = moment(milisecond).format('DD.MM.YYYY HH:mm:ss');
+
+                    var aciklama = item.Aciklama || ''; // null guard
+
+                    var row =
+                        '<tr>' +
+                        '<td><input type="checkbox" class="recordCheckBox" data-id="' + item.Id + '"/></td>' +  // ✅ Checkbox sütunu
+                        '<th>' + item.Id + '</th>' +
+                        '<td>' + item.Baslık + '</td>' +
+                        '<td>' + item.Duyuru + '</td>' +
+                            // Açıklama kısaltıldı + title ile tamamı tooltip
+                            '<td class="aciklama-hucre" title="' + aciklama.replace(/"/g,'&quot;') + '">' + aciklama + '</td>' +
+                            '<td>' + formattedDate + '</td>' +
+                            '<td>' +
+                                '<a href="#" class="btnDuzenle btn btn-warning btn-sm" role="button" data-id="' + item.Id + '"><i class="fa fa-edit"></i></a> | ' +
+                                '<a href="#" class="btnInfo btn btn-info btn-sm" data-id="' + item.Id + '"><i class="fa fa-info"></i></a> | ' +
+                                '<a href="/Duyurular/Sil/' + item.Id + '" class="btn btn-danger btn-sm delete" onclick="return confirm(\'Kayıt Silinsin Mi ?\')"><i class="fa fa-trash"></i></a>' +
+                            '</td>' +
+                        '</tr>';
+
+                    $('#tbl tbody').append(row);
+                });
+            },
+            error: function (error) {
+                console.log(error);
+            }
+        });
+    });
+</script>
+
+<script>
+    // DÜZENLE (Turuncu)
+    $(document).on('click', '.btnDuzenle', function (e) {
+        e.preventDefault();
+
+        var Id = $(this).data('id');
+        $('#dataModalLabel').html(Id + ' Nolu Duyuru Güncelleme İşlemi');
+
+        $.ajax({
+            url: '/Duyurular/DuyuruGetir',
+            type: 'GET',
+            dataType: 'json',
+            data: { Id: Id },
+            success: function (result) {
+                var r = Array.isArray(result) ? result[0] : result;
+                if (!r) { alert('Kayıt bulunamadı.'); return; }
+
+                $('#txtBaslik').val(r.Baslık || r.Baslik || '');
+                $('#txtDuyuru').val(r.Duyuru || '');
+                $('#txtAciklama').val(r.Aciklama || r.Açıklama || '');
+
+                var iso = '';
+                if (typeof r.Tarih === 'string' && r.Tarih.indexOf('/Date(') === 0) {
+                    var ms = parseInt(r.Tarih.substr(6), 10);
+                    iso = moment(ms).format('YYYY-MM-DDTHH:mm');
+                } else if (r.Tarih) {
+                    iso = moment(r.Tarih).format('YYYY-MM-DDTHH:mm');
+                }
+                $('#txtTarih').val(iso);
+
+                var modal = new bootstrap.Modal(document.getElementById('dataModal'));
+                modal.show();
+            },
+            error: function () {
+                alert('Bir hata oluştu.');
+            }
+        });
+    });
+
+    // DETAY (Mavi)
+    $(document).on('click', '.btnInfo', function (e) {
+        e.preventDefault();
+        var Id = $(this).data('id');
+
+        $.ajax({
+            url: '/Duyurular/DuyuruGetir',
+            type: 'GET',
+            dataType: 'json',
+            data: { Id: Id },
+            success: function (result) {
+                var r = Array.isArray(result) ? result[0] : result;
+                if (!r) { alert('Kayıt bulunamadı.'); return; }
+
+                $('#detayBaslik').text(r.Baslık || r.Baslik || '');
+                $('#detayDuyuru').text(r.Duyuru || '');
+                $('#detayAciklama').text(r.Aciklama || r.Açıklama || '');
+
+                var formatted = '';
+                if (typeof r.Tarih === 'string' && r.Tarih.indexOf('/Date(') === 0) {
+                    var ms = parseInt(r.Tarih.substr(6), 10);
+                    formatted = moment(ms).format('DD.MM.YYYY HH:mm:ss');
+                } else if (r.Tarih) {
+                    formatted = moment(r.Tarih).format('DD.MM.YYYY HH:mm:ss');
+                }
+                $('#detayTarih').text(formatted);
+
+                var modal = new bootstrap.Modal(document.getElementById('detailModal'));
+                modal.show();
+            },
+            error: function () {
+                alert('Detay getirilirken hata oluştu.');
+            }
+        });
+    });
+
+    // GÜNCELLEME (mevcut haliyle bırakıldı)
+    $(document).on('click', '#btnGuncelle', function () {
+        var IdText = $('#dataModalLabel').text();
+        var Id = IdText.split(' ')[0];
+        var model = {
+            Id: parseInt(Id),
+            'Baslık': $('#txtBaslik').val(),
+            Duyuru: $('#txtDuyuru').val(),
+            Aciklama: $('#txtAciklama').val(),
+            Tarih: $('#txtTarih').val()
+        };
+
+        $.ajax({
+            url: '/Duyurular/Guncelle',
+            type: 'POST',
+            data: JSON.stringify(model),
+            contentType: 'application/json; charset=utf-8',
+            success: function (res) {
+                if (res === true) {
+                    alert('Duyuru başarıyla güncellendi.');
+                    location.reload();
+                } else {
+                    alert('Güncelleme başarısız oldu.');
+                }
+            },
+            error: function () {
+                alert('Bir hata oluştu.');
+            }
+        });
+    });
+</script>
+
+<script>
+    // Üstteki "tümünü seç" checkbox'ı değiştiğinde tüm satırları işaretle/kaldır
+    $(document).on('change', '#selectAll', function () {
+        $('.recordCheckBox').prop('checked', this.checked);
+    });
+
+    // Herhangi bir satır checkbox'ı değiştiğinde üstteki "tümünü seç" durumunu senkronla
+    $(document).on('change', '.recordCheckBox', function () {
+        var all = $('.recordCheckBox').length;
+        var checked = $('.recordCheckBox:checked').length;
+        $('#selectAll').prop('checked', all > 0 && all === checked);
+    });
+</script>
+
+<script>
+    // Seçili Sil
+    $(document).on('click', '#silButton', function () {
+        var selectedIds = [];
+
+        $('.recordCheckBox:checked').each(function () {
+            selectedIds.push($(this).data('id'));
+        });
+
+        if (selectedIds.length === 0) {
+            alert('Lütfen silinecek kayıtları seçin.');
+            return;
+        }
+
+        if (!confirm('Seçili kayıtları silmek istediğinize emin misiniz?')) {
+            return;
+        }
+
+        $.ajax({
+            url: '/Duyurular/SeciliSil',
+            type: 'POST',
+            data: { ids: selectedIds },   // ← form-encoded
+            traditional: true,            // ← dizi binding için önemli
+            success: function (res) {
+                if (res === true) {
+                    alert('Seçili duyurular silindi.');
+                    location.reload();
+                } else {
+                    alert('Silme işlemi başarısız oldu.');
+                }
+            },
+            error: function () {
+                alert('Bir hata oluştu.');
+            }
+        });
+    });
+
+</script>
+
+

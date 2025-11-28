@@ -1,0 +1,43 @@
+﻿@model MVC_Kutuphane_Otomasyonu.Entities.Model.Duyurular
+@{
+    ViewBag.Title = "Yeni Duyuru Ekle";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="ibox">
+            <div class="ibox-head">Yeni Duyuru Ekle</div>
+            <div class="ibox-body">
+                @using (Html.BeginForm("Ekle", "Duyurular", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.Baslık)
+                        @Html.TextBoxFor(m => m.Baslık, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(m => m.Baslık, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.Duyuru)
+                        @Html.TextBoxFor(m => m.Duyuru, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(m => m.Duyuru, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.Aciklama)
+                        @Html.TextAreaFor(m => m.Aciklama, new { @class = "form-control", rows = 5 })
+                        @Html.ValidationMessageFor(m => m.Aciklama, "", new { @class = "text-danger" })
+                    </div>
+                  
+
+
+                    <button type="submit" class="btn btn-success">Kaydet</button>
+                    @Html.ActionLink("Geri", "Index", null, new { @class = "btn btn-secondary ml-2" })
+                }
+            </div>
+        </div>
+    </div>
+</div>

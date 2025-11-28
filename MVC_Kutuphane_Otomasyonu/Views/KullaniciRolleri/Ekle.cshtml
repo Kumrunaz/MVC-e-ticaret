@@ -1,0 +1,46 @@
+﻿@model MVC_Kutuphane_Otomasyonu.Entities.Model.KullaniciRolleri
+
+
+
+
+@{
+    ViewBag.Title = "Ekle";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row">
+    <div class="col-lg">
+        <div class="ibox">
+            <div class="ibox-head">
+                <b>Kullanıcı İçin Rol Ekleme İşlemi</b>
+            </div>
+
+            <div class="ibox-body">
+                @using (Html.BeginForm("Ekle", "KullaniciRolleri", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.HiddenFor(x => x.KullaniciId)
+                    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+
+                    <div class="form-group">
+                        @Html.DisplayNameFor(x => x.KullaniciId)
+                        <input type="text" class="form-control" value="@Model.KullaniciId" disabled />
+                    </div>
+
+                    <div class="form-group">
+                        @Html.DisplayNameFor(x => x.RolId)
+                        @Html.DropDownListFor(
+                            x => x.RolId,
+                            (SelectList)ViewBag.Liste,
+                            "-Seçim Yapınız-",
+                            new { @class = "form-control" })
+                        @Html.ValidationMessageFor(x => x.RolId, "", new { @class = "text-danger" })
+                    </div>
+
+                    <button type="submit" class="btn btn-success">Ekle</button>
+                    @Html.ActionLink("Geri", "KRolleri", "Kullanicilar", new { id = Model.KullaniciId }, new { @class = "btn btn-default" })
+                }
+            </div>
+        </div>
+    </div>
+</div>
